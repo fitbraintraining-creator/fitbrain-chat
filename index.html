@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitBrain — Assistente Chat</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE6;
+    --border: #E2DDD6;
+    --border2: #CCC8C0;
+    --text: #1A1816;
+    --text2: #6B6760;
+    --text3: #9B9890;
+    --accent: #C8553D;
+    --accent-light: #F5EAE7;
+    --accent-dark: #9E3D28;
+    --green: #2D6A4F;
+    --green-light: #E8F4EE;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* Header */
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .brand-mark svg { width: 22px; height: 22px; }
+
+  .brand-text h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .brand-text p {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 1px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 14px;
+  }
+
+  /* Form elements */
+  .row { display: flex; gap: 12px; }
+  .col { flex: 1; min-width: 0; }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+
+  select, textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B6760' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 110px;
+    line-height: 1.6;
+  }
+
+  /* Tags */
+  .tags-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .tag {
+    font-size: 12px;
+    padding: 5px 11px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: var(--bg);
+    color: var(--text2);
+    transition: all 0.12s;
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1;
+  }
+
+  .tag:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .tag.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+    font-weight: 500;
+  }
+
+  /* Button */
+  .btn-generate {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--accent);
+    color: #fff;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: 0.01em;
+  }
+
+  .btn-generate:hover { background: var(--accent-dark); }
+  .btn-generate:active { transform: scale(0.99); }
+  .btn-generate:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  /* Spinner */
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Output */
+  .output-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-top: 16px;
+    animation: fadeUp 0.25s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .output-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .output-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+
+  .badge-ok { background: var(--green-light); color: var(--green); }
+  .badge-wait { background: #FFF3E0; color: #E65100; }
+
+  .output-body {
+    padding: 18px;
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+    min-height: 80px;
+  }
+
+  .output-body.placeholder-text {
+    color: var(--text3);
+    font-style: italic;
+    font-size: 14px;
+  }
+
+  .output-actions {
+    display: flex;
+    gap: 8px;
+    padding: 0 18px 18px;
+  }
+
+  .btn-secondary {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text2);
+    transition: all 0.12s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--border2);
+    color: var(--text);
+  }
+
+  .btn-copy-main {
+    flex: 2;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--accent);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--accent-light);
+    color: var(--accent);
+    transition: all 0.12s;
+  }
+
+  .btn-copy-main:hover {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0 16px;
+  }
+
+  /* Tips strip */
+  .tip {
+    font-size: 12px;
+    color: var(--text3);
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--border2);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 480px) {
+    .row { flex-direction: column; gap: 0; }
+    .page { padding: 24px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11 3C7 3 4 6 4 10C4 12.5 5.2 14.7 7 16L7 18.5C7 19 7.5 19.5 8 19.5H14C14.5 19.5 15 19 15 18.5V16C16.8 14.7 18 12.5 18 10C18 6 15 3 11 3Z" fill="white" fill-opacity="0.9"/>
+        <path d="M9 10.5L10.5 12L13.5 9" stroke="#C8553D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>FitBrain Training</h1>
+      <p>Assistente chat — uso interno team</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Configurazione</div>
+
+    <div class="row">
+      <div class="col field">
+        <label>Fase della chat</label>
+        <select id="fase">
+          <option value="apertura">Apertura outreach (follower / like / commento)</option>
+          <option value="richiesta_info">Richiesta info spontanea (IG o WA)</option>
+          <option value="chat_in_corso">Chat in corso — qualificazione</option>
+          <option value="proposta_vc">Proposta videocall</option>
+          <option value="followup">Follow up (non risponde)</option>
+          <option value="obiezione">Gestione obiezione</option>
+        </select>
+      </div>
+      <div class="col field">
+        <label>Canale</label>
+        <select id="canale">
+          <option value="instagram">Instagram DM</option>
+          <option value="whatsapp">WhatsApp</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Contesto rapido — clicca per aggiungere</label>
+      <div class="tags-wrap" id="tags">
+        <button class="tag" data-val="Ha messo like a un reel">Like reel</button>
+        <button class="tag" data-val="Ha commentato un post">Commento post</button>
+        <button class="tag" data-val="Si allena in palestra">Palestra</button>
+        <button class="tag" data-val="Si allena in casa">Casa</button>
+        <button class="tag" data-val="Vuole perdere peso e tonificarsi">Dimagrire + tono</button>
+        <button class="tag" data-val="Obiettivo: migliorare glutei e gambe">Glutei / gambe</button>
+        <button class="tag" data-val="È mamma">Mamma</button>
+        <button class="tag" data-val="È studentessa">Studentessa</button>
+        <button class="tag" data-val="Ha già un PT o segue qualcuno online">Ha già un PT</button>
+        <button class="tag" data-val="Ha chiesto il prezzo">Ha chiesto prezzo</button>
+        <button class="tag" data-val="Non ha tempo">Non ha tempo</button>
+        <button class="tag" data-val="Vuole risultati rapidi">Vuole risultati rapidi</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Ultimi messaggi della chat</label>
+      <textarea id="chat-input" placeholder="Incolla qui gli ultimi 2-3 messaggi della chat. Esempio:&#10;&#10;Lei: ciao vorrei sapere come funziona il percorso&#10;Noi: ciao! sono Elisabetta...&#10;Lei: mi alleno 3 volte a settimana, voglio migliorare glutei"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Note extra (opzionale)</label>
+      <textarea id="ctx-extra" style="min-height:64px;" placeholder="Aggiungi qualcosa che non è nei tag sopra..."></textarea>
+    </div>
+  </div>
+
+  <button class="btn-generate" id="gen-btn" onclick="genera()">
+    Genera messaggio
+  </button>
+
+  <div class="output-card" id="output-card" style="display:none;">
+    <div class="output-header">
+      <span class="output-label">Messaggio pronto</span>
+      <span class="badge badge-wait" id="badge">Elaborazione...</span>
+    </div>
+    <div class="output-body placeholder-text" id="output-body">Il messaggio apparirà qui...</div>
+    <div class="output-actions" id="output-actions" style="display:none;">
+      <button class="btn-secondary" onclick="genera()">Rigenera</button>
+      <button class="btn-copy-main" id="copy-btn" onclick="copia()">Copia e invia</button>
+    </div>
+  </div>
+
+  <div class="tip" style="margin-top:20px;">
+    💡 <strong>Ricorda:</strong> leggi sempre il messaggio prima di inviarlo e personalizzalo con il nome della persona se non l'hai già inserito nella chat.
+  </div>
+
+</div>
+
+<script>
+  // Tag toggle
+  const tags = document.querySelectorAll('.tag');
+  const selected = new Set();
+
+  tags.forEach(t => {
+    t.addEventListener('click', () => {
+      const val = t.dataset.val;
+      if (selected.has(val)) {
+        selected.delete(val);
+        t.classList.remove('active');
+      } else {
+        selected.add(val);
+        t.classList.add('active');
+      }
+    });
+  });
+
+  function buildPrompt() {
+    const fase = document.getElementById('fase').value;
+    const canale = document.getElementById('canale').value;
+    const chat = document.getElementById('chat-input').value.trim();
+    const extra = document.getElementById('ctx-extra').value.trim();
+
+    const faseLabel = {
+      apertura: 'apertura outreach a freddo — primo messaggio a chi ci segue o ha interagito con un contenuto',
+      richiesta_info: 'risposta a una richiesta info spontanea — la persona ha scritto per chiedere informazioni',
+      chat_in_corso: 'chat in corso — devi continuare a qualificare (capire situazione, ostacolo, obiettivo, priorità) senza ancora proporre la videocall',
+      proposta_vc: 'proposta della videocall gratuita — hai già qualificato abbastanza e vuoi fissare la call',
+      followup: 'follow up perché la persona non ha risposto da un po\'',
+      obiezione: 'gestione di una obiezione emersa nella chat'
+    }[fase];
+
+    const canaleTxt = canale === 'instagram' ? 'Instagram DM' : 'WhatsApp';
+    const ctxTags = selected.size > 0 ? Array.from(selected).join(', ') : '';
+    const ctx = [ctxTags, extra].filter(Boolean).join('. ');
+
+    return `Sei l'assistente interno di FitBrain Training, un servizio di personal training online specializzato in donne che vogliono migliorare la composizione corporea (dimagrire, tonificarsi, migliorare glutei, gambe, addome). Il target sono donne normali: mamme, studentesse, casalinghe, che si allenano 2-3 volte a settimana in palestra o in casa. Non sono atlete professioniste.
+
+Il tuo compito è scrivere UN SOLO messaggio da inviare su ${canaleTxt} nella fase di: ${faseLabel}.
+
+REGOLE FONDAMENTALI:
+- Tono: caldo, femminile, empatico, autentico — mai commerciale né aggressivo
+- MAI menzionare prezzi, pacchetti o costi
+- MAI proporre la videocall prima di aver capito situazione, ostacolo, obiettivo e priorità (a meno che la fase richiesta sia già "proposta videocall")
+- Poni sempre UNA SOLA domanda alla fine — mai due
+- Messaggio breve: massimo 4-5 righe
+- Usa emoji con moderazione: 1-2 al massimo
+- Personalizza sempre agganciandoti a qualcosa che ha detto o fatto
+- Se è fase di proposta videocall: presentala come "chiacchierata veloce gratuita" non vincolante, mai come "consulenza di vendita"
+- Non dare mai consigli di allenamento o alimentazione nella chat
+- Scrivi in italiano, tono colloquiale ma professionale
+- Usa "NOME" come segnaposto dove va il nome della persona
+
+${ctx ? `CONTESTO: ${ctx}` : ''}
+
+${chat ? `ULTIMI MESSAGGI DELLA CHAT:\n${chat}` : 'Non ci sono messaggi precedenti — è il primo contatto.'}
+
+Scrivi SOLO il testo del messaggio, senza spiegazioni, senza virgolette, senza intestazioni. Inizia direttamente con il saluto o il testo.`;
+  }
+
+  async function genera() {
+    const btn = document.getElementById('gen-btn');
+    const card = document.getElementById('output-card');
+    const body = document.getElementById('output-body');
+    const badge = document.getElementById('badge');
+    const actions = document.getElementById('output-actions');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Elaborazione...';
+    card.style.display = 'block';
+    body.className = 'output-body placeholder-text';
+    body.textContent = 'Claude sta scrivendo il messaggio...';
+    badge.textContent = 'Elaborazione...';
+    badge.className = 'badge badge-wait';
+    actions.style.display = 'none';
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: buildPrompt() }]
+        })
+      });
+
+      const data = await res.json();
+      const text = data.content?.map(b => b.text || '').join('') || 'Errore nella risposta. Riprova.';
+
+      body.className = 'output-body';
+      body.textContent = text;
+      badge.textContent = 'Pronto';
+      badge.className = 'badge badge-ok';
+      actions.style.display = 'flex';
+
+    } catch (e) {
+      body.className = 'output-body';
+      body.textContent = 'Errore di connessione. Controlla la rete e riprova.';
+      badge.textContent = 'Errore';
+      badge.className = 'badge badge-wait';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = 'Genera messaggio';
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function copia() {
+    const text = document.getElementById('output-body').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = '✓ Copiato!';
+      setTimeout(() => btn.textContent = 'Copia e invia', 2000);
+    });
+  }
+</script>
+</body>
+</html>
